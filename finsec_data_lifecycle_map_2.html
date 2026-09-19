@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinSec — Data Lifecycle & Flow Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A1628;
+    --panel:#0F2038;
+    --panel-alt:#152B4A;
+    --panel-raised:#1B3358;
+    --border:rgba(255,255,255,0.09);
+    --border-strong:rgba(255,255,255,0.16);
+    --text:#E8EDF5;
+    --text-dim:#8FA0B8;
+    --text-dimmer:#5E7089;
+    --teal:#4FB8B0;
+    --teal-dim:rgba(79,184,176,0.14);
+    --amber:#D6A542;
+    --amber-dim:rgba(214,165,66,0.15);
+    --red:#C6564F;
+    --red-dim:rgba(198,86,79,0.15);
+    --orange:#CB8B4C;
+    --orange-dim:rgba(203,139,76,0.15);
+    --green:#5EA47A;
+    --green-dim:rgba(94,164,122,0.15);
+    --violet:#8C7FCB;
+    --violet-dim:rgba(140,127,203,0.15);
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(79,184,176,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 0%, rgba(214,165,66,0.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .wrap{max-width:1220px;margin:0 auto;padding:44px 28px 80px;}
+
+  /* ---------- Header ---------- */
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--teal);margin:0 0 14px;display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px var(--teal-dim);}
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;font-size:clamp(26px,3.8vw,40px);
+    margin:0 0 12px;letter-spacing:-0.01em;line-height:1.1;
+  }
+  h1 span{color:var(--text-dim);font-weight:500;}
+  .subtitle{color:var(--text-dim);font-size:14.5px;max-width:700px;line-height:1.6;margin:0 0 18px;}
+
+  .legend-toggle{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal);
+    border:1px solid var(--teal);background:var(--teal-dim);
+    padding:8px 14px;border-radius:7px;cursor:pointer;margin-bottom:8px;
+  }
+  .legend-toggle:hover{background:rgba(79,184,176,0.24);}
+  .legend-toggle svg{width:13px;height:13px;stroke:var(--teal);transition:transform .2s ease;}
+  .legend-toggle.open svg{transform:rotate(180deg);}
+
+  .legend-panel{
+    max-height:0;overflow:hidden;transition:max-height .3s ease;
+  }
+  .legend-panel.open{max-height:1400px;margin-top:16px;margin-bottom:8px;}
+  .legend-inner{
+    border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);
+    padding:22px 26px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:26px;
+  }
+  .legend-col h4{
+    font-family:'Space Grotesk',sans-serif;font-size:13px;margin:0 0 12px;
+    text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);
+  }
+  .legend-row{display:flex;gap:10px;margin-bottom:11px;align-items:flex-start;}
+  .legend-swatch{
+    flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;
+    padding:3px 7px;border-radius:5px;white-space:nowrap;margin-top:1px;
+  }
+  .legend-text{font-size:12.5px;color:var(--text-dim);line-height:1.55;}
+  .legend-text b{color:var(--text);}
+  .legend-footnote{
+    grid-column:1/-1;font-size:11.5px;color:var(--text-dimmer);line-height:1.6;
+    border-top:1px solid var(--border);padding-top:14px;margin-top:2px;
+  }
+
+  /* ---------- Stat ledger strip ---------- */
+  .ledger{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--border);border-radius:var(--radius);
+    overflow:hidden;margin:34px 0 46px;background:var(--panel);
+  }
+  .ledger-item{padding:18px 20px;border-right:1px solid var(--border);}
+  .ledger-item:last-child{border-right:none;}
+  .ledger-num{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;line-height:1;}
+  .ledger-label{font-size:11.5px;color:var(--text-dim);margin-top:6px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.02em;}
+
+  /* ---------- Pipeline ---------- */
+  .pipeline-heading{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-dimmer);
+    text-transform:uppercase;letter-spacing:0.1em;margin:0 0 16px;
+  }
+  .pipeline{
+    display:grid;grid-template-columns:repeat(6,1fr);gap:0;
+    position:relative;margin-bottom:10px;
+  }
+  .pipeline::before{
+    content:"";position:absolute;top:38px;left:6%;right:6%;height:2px;
+    background:repeating-linear-gradient(90deg, var(--border-strong) 0 8px, transparent 8px 16px);
+    z-index:0;
+  }
+  .stage{
+    position:relative;z-index:1;padding:0 8px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;text-align:center;
+    transition:opacity .25s ease;
+  }
+  .stage-icon{
+    width:76px;height:76px;border-radius:50%;
+    background:var(--panel);border:1.5px solid var(--border-strong);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:14px;transition:all .25s ease;
+  }
+  .stage-icon svg{width:32px;height:32px;stroke:var(--text-dim);transition:stroke .25s ease;}
+  .stage-name{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14.5px;margin-bottom:4px;}
+  .stage-desc{font-size:12px;color:var(--text-dimmer);line-height:1.45;max-width:150px;}
+  .stage.active .stage-icon{background:var(--teal-dim);border-color:var(--teal);}
+  .stage.active .stage-icon svg{stroke:var(--teal);}
+  .stage:hover .stage-icon{border-color:var(--teal);}
+
+  /* ---------- Overview panel ---------- */
+  .overview-panel{
+    margin-top:34px;border:1px solid var(--border);border-radius:var(--radius);
+    background:var(--panel);padding:26px 28px;
+    animation:fadeIn .25s ease;
+  }
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+  .overview-title{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:18px;margin:0 0 8px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .overview-title .tag{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);
+    background:var(--teal-dim);padding:3px 8px;border-radius:5px;
+  }
+  .overview-body{color:var(--text-dim);font-size:14px;line-height:1.65;max-width:780px;margin-bottom:16px;}
+  .overview-meta{display:flex;flex-wrap:wrap;gap:10px;}
+  .meta-chip{
+    font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--text-dim);
+    border:1px solid var(--border);padding:5px 10px;border-radius:6px;
+  }
+
+  /* ---------- Process selector ---------- */
+  .process-section{margin-top:58px;}
+  .process-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
+  .process-header h2{
+    font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:600;margin:0;
+  }
+  .process-header p{font-size:12.5px;color:var(--text-dimmer);margin:4px 0 0;}
+  .reset-link{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal);
+    cursor:pointer;background:none;border:none;padding:0;text-decoration:underline;
+    text-underline-offset:3px;visibility:hidden;
+  }
+  .reset-link.show{visibility:visible;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:10px;}
+  .chip{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 14px;border:1px solid var(--border);border-radius:8px;
+    background:var(--panel);cursor:pointer;transition:all .18s ease;
+    min-width:220px;flex:1 1 220px;
+  }
+  .chip:hover{border-color:var(--border-strong);background:var(--panel-alt);}
+  .chip.selected{border-color:var(--teal);background:var(--teal-dim);}
+  .chip-code{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-dimmer);
+    white-space:nowrap;
+  }
+  .chip-main{flex:1;min-width:0;}
+  .chip-name{font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chip-dept{font-size:11px;color:var(--text-dimmer);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chip-badges{display:flex;flex-direction:column;gap:4px;align-items:flex-end;}
+  .risk-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .risk-row{display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--text-dimmer);}
+
+  /* ---------- Data Flow Diagram (trust-boundary view) ---------- */
+  .dfd-wrap{
+    margin-top:26px;border:1px solid var(--border);border-radius:var(--radius);
+    background:var(--panel);padding:20px 22px 16px;
+  }
+  .dfd-title{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:0.08em;color:var(--text-dimmer);margin:0 0 12px;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+  }
+  .dfd-hint{color:var(--teal);text-transform:none;letter-spacing:0;font-size:11px;}
+  .dfd-scroll{overflow-x:auto;padding-bottom:4px;}
+  .dfd-scroll svg{display:block;}
+  .dfd-node-clickable{cursor:pointer;transition:filter .15s ease;}
+  .dfd-node-clickable:hover{filter:brightness(1.3);}
+  .dfd-legend-mini{
+    display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;padding-top:12px;
+    border-top:1px solid var(--border);
+  }
+  .dfd-legend-mini span{
+    font-size:11px;color:var(--text-dimmer);display:flex;align-items:center;gap:6px;
+  }
+  .mini-swatch{width:16px;height:11px;display:inline-block;border-radius:2px;flex-shrink:0;}
+  .mini-solid{background:var(--teal-dim);border:1.4px solid var(--teal);}
+  .mini-store{background:var(--violet-dim);border-top:1.6px solid var(--violet);border-bottom:1.6px solid var(--violet);border-left:none;border-right:none;}
+  .mini-entity{background:var(--red-dim);border:1.4px solid var(--red);box-shadow:inset 0 0 0 2.5px var(--panel), inset 0 0 0 3.5px var(--red);}
+  .mini-dashed{background:var(--panel-alt);border:1.4px dashed var(--text-dimmer);}
+
+  @keyframes stageFlash{
+    0%{background:var(--teal-dim);}
+    100%{background:transparent;}
+  }
+  .stage-flash{animation:stageFlash 1.3s ease;}
+
+  /* ---------- Detail drawer ---------- */
+  .drawer{
+    margin-top:26px;border:1px solid var(--teal);border-radius:var(--radius);
+    background:var(--panel);overflow:hidden;animation:fadeIn .3s ease;
+  }
+  .drawer-head{
+    padding:20px 26px;border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, var(--teal-dim), transparent);
+    display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;
+  }
+  .drawer-code{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal);}
+  .drawer-title{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;margin:2px 0 0;}
+  .drawer-purpose{font-size:13.5px;color:var(--text-dim);max-width:640px;line-height:1.6;margin-top:8px;}
+  .drawer-flags{display:flex;gap:8px;flex-wrap:wrap;max-width:260px;justify-content:flex-end;}
+  .flag{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 11px;border-radius:6px;
+    display:flex;align-items:center;gap:6px;white-space:nowrap;
+  }
+  .flag-risk-medium{background:var(--amber-dim);color:var(--amber);}
+  .flag-risk-high{background:var(--red-dim);color:var(--red);}
+  .flag-risk-medhigh{background:var(--orange-dim);color:var(--orange);}
+  .flag-dpia-yes{background:var(--red-dim);color:var(--red);}
+  .flag-dpia-rec{background:var(--amber-dim);color:var(--amber);}
+  .flag-dpia-no{background:var(--green-dim);color:var(--green);}
+  .flag-xborder-yes{background:var(--amber-dim);color:var(--amber);}
+  .flag-xborder-no{background:var(--green-dim);color:var(--green);}
+  .flag-subject{background:var(--violet-dim);color:var(--violet);}
+
+  .drawer-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+    background:var(--border);
+  }
+  .drawer-stage{background:var(--panel);padding:18px 20px;}
+  .drawer-stage-head{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+  .drawer-stage-head svg{width:17px;height:17px;stroke:var(--teal);flex-shrink:0;}
+  .drawer-stage-head span{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:0.06em;color:var(--teal);
+  }
+  .handler-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+  .handler-badge{
+    font-size:11px;font-weight:500;color:var(--text);background:var(--panel-raised);
+    padding:4px 8px;border-radius:5px;border:1px solid var(--border-strong);
+  }
+  .role-badge{
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;padding:4px 8px;border-radius:5px;font-weight:600;
+  }
+  .role-controller{background:var(--teal-dim);color:var(--teal);}
+  .role-processor{background:var(--violet-dim);color:var(--violet);}
+  .role-joint{background:var(--amber-dim);color:var(--amber);}
+  .role-regulator{background:var(--red-dim);color:var(--red);}
+
+  .elements-list{margin:0 0 11px;padding:0;list-style:none;}
+  .elements-list li{
+    font-size:12.5px;color:var(--text-dim);line-height:1.5;
+    padding-left:0;margin-bottom:7px;display:flex;gap:7px;align-items:flex-start;
+  }
+  .elements-list li b{color:var(--text);font-weight:500;}
+  .cat{
+    flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:700;
+    padding:2px 5px;border-radius:4px;margin-top:2px;white-space:nowrap;
+  }
+  .cat-pii{background:var(--teal-dim);color:var(--teal);}
+  .cat-spii{background:var(--red-dim);color:var(--red);}
+  .cat-fin{background:var(--amber-dim);color:var(--amber);}
+  .cat-non{background:rgba(143,160,184,0.15);color:var(--text-dim);}
+
+  .loc-row{
+    display:flex;align-items:flex-start;gap:6px;font-size:11.5px;color:var(--text-dim);
+    padding:9px 0;border-top:1px solid var(--border);margin-top:2px;line-height:1.5;
+  }
+  .loc-row svg{width:13px;height:13px;stroke:var(--text-dimmer);flex-shrink:0;margin-top:1.5px;}
+  .sec-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
+  .sec-chip{
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--green);
+    background:var(--green-dim);padding:3px 7px;border-radius:4px;
+  }
+  .legal-row{margin-top:9px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-dimmer);line-height:1.5;}
+
+  /* ---------- Footer ---------- */
+  .footer{
+    margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
+    font-size:12px;color:var(--text-dimmer);font-family:'IBM Plex Mono',monospace;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:1100px){
+    .legend-inner{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:900px){
+    .pipeline{grid-template-columns:repeat(3,1fr);row-gap:34px;}
+    .pipeline::before{display:none;}
+    .drawer-grid{grid-template-columns:repeat(2,1fr);}
+    .ledger{grid-template-columns:repeat(2,1fr);}
+    .legend-inner{grid-template-columns:1fr;}
+  }
+  @media (max-width:560px){
+    .pipeline{grid-template-columns:repeat(2,1fr);}
+    .drawer-grid{grid-template-columns:1fr;}
+    .ledger{grid-template-columns:1fr 1fr;}
+    .chip{min-width:100%;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">FinSec Technologies Pvt. Ltd · Data Protection Office</p>
+  <h1>Data Lifecycle &amp; Flow Map <span>— Collection to Deletion</span></h1>
+  <p class="subtitle">
+    Traces how personal data moves from the data subject, through internal departments and systems, to
+    external recipients — identifying data category, controller/processor role, storage location and
+    security controls at every phase. Built from the Data Discovery Questionnaire (FTPL-DPO-DDQ-2026-001)
+    across 10 core business processes, structured on DPDP Act 2023 and ISO/IEC 27701 terminology.
+  </p>
+
+  <div class="legend-toggle" id="legendToggle">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    Standards &amp; terminology used in this map
+  </div>
+  <div class="legend-panel" id="legendPanel">
+    <div class="legend-inner">
+      <div class="legend-col">
+        <h4>Roles (DPDP Act 2023 · ISO/IEC 27701)</h4>
+        <div class="legend-row"><span class="legend-swatch role-controller">CONTROLLER</span><span class="legend-text"><b>Data Fiduciary</b> — FinSec, as the entity that determines the purpose and means of processing <span style="color:var(--text-dimmer)">(DPDP Act S.2(9); ISO 27701 "PII Controller")</span>.</span></div>
+        <div class="legend-row"><span class="legend-swatch role-processor">PROCESSOR</span><span class="legend-text"><b>Data Processor</b> — a vendor engaged by FinSec to process data on its behalf and instructions only <span style="color:var(--text-dimmer)">(DPDP Act S.2(17); ISO 27701 "PII Processor")</span>, e.g. AWS, Twilio, HyperVerge.</span></div>
+        <div class="legend-row"><span class="legend-swatch role-joint">JOINT</span><span class="legend-text"><b>Joint / Co-Controller</b> — a party that independently determines some purpose of processing alongside FinSec, e.g. a Banking Partner holding the underlying account, or a Merchant for its own settlement data.</span></div>
+        <div class="legend-row"><span class="legend-swatch role-regulator">REGULATOR</span><span class="legend-text"><b>External recipient under legal obligation</b> — a regulator or authority receiving data by mandate, not as a processor, e.g. FIU-IND, RBI Ombudsman, UIDAI.</span></div>
+      </div>
+      <div class="legend-col">
+        <h4>Data categories (risk-based tiering)</h4>
+        <div class="legend-row"><span class="legend-swatch cat-pii">PII</span><span class="legend-text">Ordinary personal data identifying a data subject — name, email, mobile, address.</span></div>
+        <div class="legend-row"><span class="legend-swatch cat-spii">SENSITIVE</span><span class="legend-text">Identity, biometric or health-adjacent data warranting heightened controls — Aadhaar, PAN, biometric selfie, call recordings.</span></div>
+        <div class="legend-row"><span class="legend-swatch cat-fin">FINANCIAL</span><span class="legend-text">Transaction, balance or payment-instrument data, in PCI-DSS scope where card-adjacent.</span></div>
+        <div class="legend-row"><span class="legend-swatch cat-non">NON-PII</span><span class="legend-text">System-generated, aggregated or pseudonymised data with low re-identification risk.</span></div>
+      </div>
+      <div class="legend-col">
+        <h4>Diagram notation (DFD standard)</h4>
+        <div class="legend-row"><span class="legend-swatch" style="background:var(--red-dim);border:1.4px solid var(--red);box-shadow:inset 0 0 0 2.5px var(--panel), inset 0 0 0 3.5px var(--red);width:34px;height:16px;">&nbsp;</span><span class="legend-text"><b>External entity</b> — double-bordered box; a person or organisation outside FinSec's processing boundary (customer, beneficiary, merchant).</span></div>
+        <div class="legend-row"><span class="legend-swatch" style="background:var(--teal-dim);border:1.4px solid var(--teal);width:34px;height:16px;">&nbsp;</span><span class="legend-text"><b>Process</b> — rounded box; a service, application or manual activity that transforms or routes data.</span></div>
+        <div class="legend-row"><span class="legend-swatch" style="background:var(--violet-dim);border-top:1.6px solid var(--violet);border-bottom:1.6px solid var(--violet);width:34px;height:16px;">&nbsp;</span><span class="legend-text"><b>Data store</b> — open rectangle; a database or persistent store at rest.</span></div>
+        <div class="legend-row"><span class="legend-swatch" style="background:var(--panel-alt);border:1.4px dashed var(--text-dimmer);width:34px;height:16px;">&nbsp;</span><span class="legend-text"><b>Trust boundary crossed</b> — dashed border; data leaves FinSec's direct control to a processor, joint controller or regulator, sometimes across a border.</span></div>
+      </div>
+      <div class="legend-footnote">
+        Note on terminology: the DPDP Act 2023 does not itself create a formal "sensitive personal data" sub-category (unlike the erstwhile SPDI Rules, 2011 or GDPR Art. 9). The PII / Sensitive / Financial / Non-PII tiering above is applied as an internal governance practice — aligned with ISO/IEC 27701 risk-based controls and PCI-DSS scoping — to calibrate proportionate safeguards, and is layered on top of, not a substitute for, DPDP Act obligations that apply uniformly to all personal data.
+        <br><br>
+        Diagram notation follows standard data-flow-diagram conventions (Gane–Sarson style) with trust-boundary framing consistent with common threat-modelling practice (e.g. Microsoft Threat Modeling Tool, OWASP Threat Dragon) — adapted here for privacy/data-flow mapping rather than security threat modelling.
+      </div>
+    </div>
+  </div>
+
+  <div class="ledger" id="ledger"></div>
+
+  <p class="pipeline-heading">Lifecycle Stages</p>
+  <div class="pipeline" id="pipeline"></div>
+  <div id="overviewPanel"></div>
+
+  <div class="process-section">
+    <div class="process-header">
+      <div>
+        <h2>Business Processes</h2>
+        <p>10 processes mapped under the DDQ · select one to trace its full data flow, roles, storage and controls</p>
+      </div>
+      <button class="reset-link" id="resetBtn">clear selection</button>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div id="drawerHost"></div>
+
+  <div class="footer">
+    <span>FinSec Technologies Pvt. Ltd · Privacy Compliance Programme</span>
+    <span>Portfolio artifact · Not for external distribution</span>
+  </div>
+
+</div>
+
+<script>
+/* ---------------- ICONS ---------------- */
+const ICONS = {
+  collection: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path d="M8 13l4 4 4-4"/><path d="M12 3v13"/></svg>`,
+  processing: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><circle cx="16" cy="16" r="3.2"/><path d="M9 12.2V15a2 2 0 0 0 2 2h1.8"/><path d="M16 12.8V10a2 2 0 0 0-2-2h-1.8"/></svg>`,
+  storage: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.5"/><path d="M4.5 5.5V12c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5V5.5"/><path d="M4.5 12v6.5c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5V12"/></svg>`,
+  sharing: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="7" r="2.3"/><circle cx="19" cy="6" r="2.3"/><circle cx="12" cy="18" r="2.3"/><path d="M7 8.3L10.3 16"/><path d="M17 7.3L13.5 16.5"/></svg>`,
+  retention: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>`,
+  deletion: `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14"/><path d="M9 7V4.8c0-.5.4-.8.8-.8h4.4c.4 0 .8.3.8.8V7"/><path d="M7 7l.7 12a2 2 0 0 0 2 1.8h4.6a2 2 0 0 0 2-1.8L17 7"/><path d="M10 11v5M14 11v5"/></svg>`,
+  location: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-6.1-6.5-11A6.5 6.5 0 0 1 12 3.5A6.5 6.5 0 0 1 18.5 10c0 4.9-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.2"/></svg>`,
+};
+
+/* ---------------- STAGE OVERVIEW COPY ---------------- */
+const STAGE_ORDER = ['collection','processing','storage','sharing','retention','deletion'];
+const STAGE_NAMES = {collection:'Collection',processing:'Processing',storage:'Storage',sharing:'Sharing & Transfer',retention:'Retention',deletion:'Deletion & Erasure'};
+const STAGES = [
+  {id:'collection', name:'Collection', desc:'Data enters at onboarding, KYC, and each transaction touchpoint.',
+   body:'FinSec (Data Fiduciary) collects data directly from customers and, in some flows, third-party data subjects such as transfer beneficiaries — plus passive/derived data via SDKs. Every direct collection point carries a Privacy Notice under DPDP Act S.5.',
+   meta:['9 of 10 processes collect directly from the data subject','1 process (Money Transfer) also collects a third-party beneficiary\'s data']},
+  {id:'processing', name:'Processing', desc:'Verification, authentication, transfers, fraud scoring, and payment execution.',
+   body:'Processing spans manual review by named internal teams and automated decisioning (ML fraud scoring, liveness checks). Automated decisions with legal/financial effect trigger DPIA and human-review rights under DPDP Act S.7(f).',
+   meta:['Automated decisioning in 4 processes','Legal bases used: Consent, Contract, Legal Obligation, Legitimate Use']},
+  {id:'storage', name:'Storage', desc:'Primary storage in AWS Mumbai; select systems replicate to Singapore.',
+   body:'All primary data is held in AWS ap-south-1 (Mumbai) to satisfy RBI data-localisation norms, with AWS engaged as a Data Processor / sub-processor. AES-256 at rest and TLS 1.3 in transit apply uniformly; RBAC is scoped to need-to-know per team.',
+   meta:['Primary region: AWS Mumbai (ap-south-1)','7 of 10 processes replicate to AWS Singapore (DR)']},
+  {id:'sharing', name:'Sharing & Transfer', desc:'Internal RBAC-gated access plus external processors, joint controllers and regulators.',
+   body:'External recipients fall into three roles: Processors acting on FinSec\'s instructions (Twilio, SendGrid, HyperVerge, Zendesk), Joint/Independent Controllers (Banking Partners, Merchants), and Regulators receiving under legal mandate (FIU-IND, RBI Ombudsman, UIDAI). Cross-border transfers rely on DPAs with SCCs pending DPDP Act S.16 notification.',
+   meta:['7 of 10 processes involve cross-border transfer','Highest-sensitivity data (Aadhaar, KYC docs) stays India-only']},
+  {id:'retention', name:'Retention', desc:'Retention is set by statute, not convenience — mostly PMLA and RBI.',
+   body:'Financial and KYC records are retained 5–8 years under PMLA and RBI Master Directions. Records Management / DPO Office owns retention-schedule enforcement across all systems, with automated expiry flags on immutable transaction logs.',
+   meta:['Longest: 8 years (transaction & fraud records, PMLA S.12)','Shortest: 12 months (unconverted marketing leads)']},
+  {id:'deletion', name:'Deletion & Erasure', desc:'The DPDP right to erasure meets statutory retention head-on.',
+   body:'Erasure requests are honoured only where no statutory retention obligation overrides them; where they conflict, the specific statutory override is documented. The DPO Office adjudicates every erasure request against the applicable retention schedule before action.',
+   meta:['Full erasure available: marketing/behavioural data only','Erasure restricted by PMLA/RBI in 8 of 10 processes']},
+];
+
+/* ---------------- helper for category label ---------------- */
+const CAT_LABEL = {pii:'PII', spii:'SENSITIVE', fin:'FINANCIAL', non:'NON-PII'};
+function el(text, cat){ return {text, cat}; }
+
+/* ---------------- PROCESS DATA (from FinSec DDQ) ---------------- */
+const PROCESSES = [
+{ code:'DDQ-FT-001', name:'User Registration', dept:'Product Team', risk:'medium', dpia:'no', xborder:'yes', subject:'Customer (Prospective / New Account Holder)',
+  purpose:'Creates customer accounts and provides platform access — the primary collection point from which all downstream processing originates.',
+  dfd:{
+    spine:[
+      {id:'customer', label:'Customer', sub:'Data Subject (External Entity)', type:'entity', zone:'public'},
+      {id:'app', label:'Mobile / Web App', sub:'Client — TLS 1.3', type:'process', zone:'dmz'},
+      {id:'gateway', label:'API Gateway', sub:'Perimeter — auth, rate-limit, WAF', type:'process', zone:'dmz'},
+      {id:'service', label:'Registration Service', sub:'Product Team', type:'process', zone:'app', stage:'processing'},
+      {id:'store', label:'Customer Database', sub:'AWS Mumbai · AES-256, RBAC', type:'datastore', zone:'data', stage:'storage'},
+      {id:'archive', label:'Retention Archive', sub:'Account life + 5 yrs (RBI/PMLA)', type:'process', zone:'archive', stage:'retention'},
+      {id:'erasure', label:'Erasure Queue', sub:'DPO-adjudicated release', type:'process', zone:'archive', stage:'deletion'},
+    ],
+    edgeLabels:[
+      {label:'Name, mobile, email, DOB entered at sign-up', cat:'pii'},
+      {label:'Registration payload forwarded over TLS 1.3', cat:'non'},
+      {label:'Authenticated request routed to service', cat:'non'},
+      {label:'Customer profile record persisted', cat:'pii'},
+      {label:'Profile + logs tagged for statutory retention', cat:'non'},
+      {label:'Erasure request checked against 5-yr KYC override', cat:'non'},
+    ],
+    branches:[
+      {from:'service', dir:'out', stage:'sharing', label:'Mobile number only — OTP delivery', cat:'pii', node:{label:'Twilio', sub:'Processor · US/Canada', type:'external', zone:'thirdparty'}},
+    ],
+  },
+  stages:{
+    collection:{handler:'Product Team', role:'Controller', roleType:'controller',
+      elements:[el('Full name, mobile, email, DOB','pii')],
+      location:'Captured via in-app registration form',
+      security:['TLS 1.3','Input validation','Consent-log timestamp']},
+    processing:{handler:'Product Team', role:'Controller', roleType:'controller',
+      elements:[el('Age (≥18) verification result','non'), el('Consent record: text version, IP, timestamp','pii')],
+      location:'Consent Management module — AWS Mumbai',
+      security:['RBAC (Product team only)','Immutable consent log']},
+    storage:{handler:'IT Infrastructure / Security Team', role:'Processor: AWS (India)', roleType:'processor',
+      elements:[el('Customer profile record','pii')],
+      location:'Customer Database — AWS Mumbai (ap-south-1)',
+      security:['AES-256 at rest','TLS 1.3 in transit','MFA on admin access']},
+    sharing:{handler:'Compliance & Legal Team (authorises)', role:'Processor: Twilio', roleType:'processor',
+      elements:[el('Mobile number only','pii')],
+      location:'Twilio platform — US / Canada',
+      security:['DPA + SCCs executed','Field minimised to mobile number only']},
+    retention:{handler:'Records Management / DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Profile: account life + 5 yrs','pii'), el('Registration logs: 2 yrs','non')],
+      location:'Customer DB + Audit Log — AWS Mumbai',
+      security:['Automated retention-expiry flag'], legal:'RBI KYC Master Direction 2016; PML Rules 2005'},
+    deletion:{handler:'DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Erasure honoured subject to 5-yr KYC override','pii')],
+      location:'Customer DB — AWS Mumbai',
+      security:['Deletion audit trail','Retention-override check']},
+  }},
+{ code:'DDQ-FT-002', name:'User Authentication', dept:'Product / Engineering', risk:'medium', dpia:'no', xborder:'yes', subject:'Customer (Account Holder)',
+  purpose:'Verifies identity on each login via OTP two-factor authentication and device recognition.',
+  dfd:{
+    spine:[
+      {id:'customer', label:'Customer', sub:'Data Subject (External Entity)', type:'entity', zone:'public'},
+      {id:'app', label:'Mobile / Web App', sub:'Client — device binding', type:'process', zone:'dmz'},
+      {id:'gateway', label:'API Gateway', sub:'Perimeter — auth, rate-limit', type:'process', zone:'dmz'},
+      {id:'service', label:'Authentication Service', sub:'Engineering Team', type:'process', zone:'app', stage:'processing'},
+      {id:'store', label:'Auth Server + Audit Log', sub:'AWS Mumbai · session store', type:'datastore', zone:'data', stage:'storage'},
+      {id:'archive', label:'Retention Archive', sub:'Session 1 yr / Audit 2 yrs', type:'process', zone:'archive', stage:'retention'},
+      {id:'erasure', label:'Erasure Queue', sub:'Subject to audit-log hold', type:'process', zone:'archive', stage:'deletion'},
+    ],
+    edgeLabels:[
+      {label:'OTP request, device ID, IP address', cat:'non'},
+      {label:'Login payload forwarded over TLS 1.3', cat:'non'},
+      {label:'Request routed to auth service', cat:'non'},
+      {label:'Session token + audit event recorded', cat:'non'},
+      {label:'Logs tagged for retention window', cat:'non'},
+      {label:'Deletion withheld during active investigation', cat:'non'},
+    ],
+    branches:[
+      {from:'service', dir:'out', stage:'sharing', label:'Mobile number only — OTP delivery', cat:'pii', node:{label:'Twilio', sub:'Processor · US/Canada', type:'external', zone:'thirdparty'}},
+    ],
+  },
+  stages:{
+    collection:{handler:'Engineering Team', role:'Controller', roleType:'controller',
+      elements:[el('OTP, Customer ID','pii'), el('Device ID, IP address, timestamp','non')],
+      location:'Captured at login',
+      security:['TLS 1.3','Device fingerprint hashing']},
+    processing:{handler:'Engineering / Security Team', role:'Controller', roleType:'controller',
+      elements:[el('OTP generation & validation result','non')],
+      location:'Authentication Server — AWS Mumbai',
+      security:['Rate limiting','Security monitoring (RBI Cyber Security Framework)']},
+    storage:{handler:'IT Infrastructure / Security Team', role:'Processor: AWS (India)', roleType:'processor',
+      elements:[el('Session tokens','non'), el('Audit / login logs','non')],
+      location:'Auth Server + Audit Log System — AWS Mumbai',
+      security:['AES-256 at rest','Log integrity hashing']},
+    sharing:{handler:'Engineering Team (authorises)', role:'Processor: Twilio', roleType:'processor',
+      elements:[el('Mobile number only','pii')],
+      location:'Twilio platform — US / Canada',
+      security:['DPA + SCCs']},
+    retention:{handler:'Records Management / DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Session records: 1 yr','non'), el('Audit / failed-login logs: 2 yrs','non')],
+      location:'Audit Log System — AWS Mumbai',
+      security:['Automated log rotation'], legal:'CERT-In Directions, 2022'},
+    deletion:{handler:'DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Login history deletable subject to audit retention','non')],
+      location:'Audit Log System — AWS Mumbai',
+      security:['Deletion withheld during active fraud investigation']},
+  }},
+{ code:'DDQ-FT-003', name:'KYC Verification', dept:'Compliance Team', risk:'high', dpia:'yes', xborder:'no', subject:'Customer (Account Holder)',
+  purpose:'Verifies customer identity for onboarding and mandatory regulatory compliance; prevents identity fraud.',
+  dfd:{
+    spine:[
+      {id:'customer', label:'Customer', sub:'Data Subject (External Entity)', type:'entity', zone:'public'},
+      {id:'app', label:'Mobile / Web App', sub:'KYC upload flow', type:'process', zone:'dmz'},
+      {id:'gateway', label:'API Gateway', sub:'Perimeter — auth, rate-limit', type:'process', zone:'dmz'},
+      {id:'service', label:'KYC Verification Service', sub:'Compliance Team', type:'process', zone:'app', stage:'processing'},
+      {id:'store', label:'KYC Module', sub:'AWS Mumbai · India-only', type:'datastore', zone:'data', stage:'storage'},
+      {id:'archive', label:'Retention Archive', sub:'5 yrs post closure (PMLA)', type:'process', zone:'archive', stage:'retention'},
+      {id:'erasure', label:'Erasure Queue', sub:'Blocked during statutory hold', type:'process', zone:'archive', stage:'deletion'},
+    ],
+    edgeLabels:[
+      {label:'Aadhaar, PAN, biometric selfie, address', cat:'spii'},
+      {label:'Encrypted upload over TLS 1.3', cat:'non'},
+      {label:'Request routed for verification', cat:'non'},
+      {label:'Verified KYC record (Aadhaar masked)', cat:'spii'},
+      {label:'KYC record tagged for 5-yr statutory hold', cat:'non'},
+      {label:'Erasure blocked — statutory retention active', cat:'non'},
+    ],
+    branches:[
+      {from:'service', dir:'out', stage:'sharing', label:'Identity document + liveness check', cat:'spii', node:{label:'HyperVerge', sub:'Processor · India', type:'external', zone:'thirdparty'}},
+      {from:'service', dir:'out', stage:'sharing', label:'Aadhaar number — authentication only', cat:'spii', node:{label:'UIDAI', sub:'Regulator · Aadhaar Authority', type:'external', zone:'thirdparty'}},
+      {from:'store', dir:'out', stage:'sharing', label:'Disclosure only on lawful demand', cat:'spii', node:{label:'FIU-IND', sub:'Regulator', type:'external', zone:'thirdparty'}},
+    ],
+  },
+  stages:{
+    collection:{handler:'Compliance Team', role:'Controller', roleType:'controller',
+      elements:[el('Aadhaar, PAN','spii'), el('Photograph / biometric selfie','spii'), el('Address','pii')],
+      location:'Captured via KYC upload flow',
+      security:['Separate explicit consent for Aadhaar eKYC (Aadhaar Act S.8)','TLS 1.3']},
+    processing:{handler:'Compliance Team', role:'Controller', roleType:'controller',
+      elements:[el('AI verification & liveness-check result','non'), el('Manual review notes','pii')],
+      location:'HyperVerge platform — India',
+      security:['Human review for borderline cases','DPIA completed']},
+    storage:{handler:'IT Infrastructure / Security Team', role:'Processor: AWS (India)', roleType:'processor',
+      elements:[el('Aadhaar (masked XXXX-XXXX-####)','spii'), el('PAN, KYC documents','spii')],
+      location:'KYC Module — AWS Mumbai (India-only, no cross-border replica)',
+      security:['AES-256 at rest','Field-level masking in non-essential views','Strict RBAC']},
+    sharing:{handler:'Compliance Team (authorises)', role:'Processor: HyperVerge / Regulator: UIDAI, FIU-IND', roleType:'regulator',
+      elements:[el('Aadhaar number (authentication only, no biometric shared externally)','spii')],
+      location:'HyperVerge (India); UIDAI Aadhaar authentication gateway',
+      security:['No biometric leaves FinSec/HyperVerge boundary','Disclosure only on lawful demand (FIU-IND)']},
+    retention:{handler:'Records Management / DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('KYC records: 5 yrs post account closure','spii'), el('Aadhaar consent logs: life + 2 yrs','pii')],
+      location:'KYC Module — AWS Mumbai',
+      security:['WORM-style immutable KYC record store'], legal:'PML Rules 2005, Rule 3'},
+    deletion:{handler:'DPO Office / Compliance Team', role:'Controller', roleType:'controller',
+      elements:[el('Erasure NOT available during 5-yr statutory retention','spii')],
+      location:'KYC Module — AWS Mumbai',
+      security:['Correction triggers mandatory re-verification']},
+  }},
+{ code:'DDQ-FT-004', name:'Wallet Creation', dept:'Product Team', risk:'high', dpia:'recommended', xborder:'no', subject:'Customer (Account Holder)',
+  purpose:'Creates an RBI-compliant Prepaid Payment Instrument for storing funds and transacting.',
+  dfd:{
+    spine:[
+      {id:'customer', label:'Customer', sub:'Existing Account Holder', type:'entity', zone:'public'},
+      {id:'app', label:'Mobile / Web App', sub:'Wallet activation', type:'process', zone:'dmz'},
+      {id:'gateway', label:'API Gateway', sub:'Perimeter — auth, rate-limit', type:'process', zone:'dmz'},
+      {id:'service', label:'Wallet Service', sub:'Product Team', type:'process', zone:'app', stage:'processing'},
+      {id:'fraud', label:'Fraud Screening Engine', sub:'Rule + velocity check at creation', type:'process', zone:'app', stage:'processing'},
+      {id:'store', label:'Wallet Database', sub:'AWS Mumbai · balance store', type:'datastore', zone:'data', stage:'storage'},
+      {id:'archive', label:'Retention Archive', sub:'Account life + 7 yrs', type:'process', zone:'archive', stage:'retention'},
+      {id:'erasure', label:'Erasure Queue', sub:'Partial — non-regulated fields only', type:'process', zone:'archive', stage:'deletion'},
+    ],
+    edgeLabels:[
+      {label:'Wallet activation request (no new data)', cat:'non'},
+      {label:'Request forwarded over TLS 1.3', cat:'non'},
+      {label:'Request routed to wallet service', cat:'non'},
+      {label:'Profile + KYC reference sent for screening', cat:'non'},
+      {label:'Wallet ID, PPI tier, transaction limits set', cat:'fin'},
+      {label:'Wallet + transaction data tagged 7–8 yrs', cat:'non'},
+      {label:'Closure request checked against pending settlements', cat:'non'},
+    ],
+    branches:[
+      {from:'store', dir:'out', stage:'sharing', label:'Wallet/account linkage data', cat:'fin', node:{label:'Banking Partner', sub:'Joint Controller', type:'external', zone:'thirdparty'}},
+      {from:'store', dir:'out', stage:'sharing', label:'Contact data only — activation email', cat:'pii', node:{label:'SendGrid', sub:'Processor · US', type:'external', zone:'thirdparty'}},
+    ],
+  },
+  stages:{
+    collection:{handler:'Product Team', role:'Controller', roleType:'controller',
+      elements:[el('Pulled from existing profile / KYC — not re-collected','pii')],
+      location:'Sourced internally from Customer DB + KYC Module',
+      security:['No new sensitive collection at this step']},
+    processing:{handler:'Risk & Fraud Team', role:'Controller', roleType:'controller',
+      elements:[el('Wallet ID, PPI tier, transaction limits','fin')],
+      location:'Wallet provisioning engine — AWS Mumbai',
+      security:['Rule-based + velocity fraud screening at creation']},
+    storage:{handler:'IT Infrastructure / Security Team', role:'Processor: AWS (India)', roleType:'processor',
+      elements:[el('Wallet balance & limits','fin')],
+      location:'Wallet Database — AWS Mumbai',
+      security:['AES-256 at rest','Balance masked in Customer Support view']},
+    sharing:{handler:'Compliance Team (authorises)', role:'Joint Controller: Banking Partner / Processor: SendGrid', roleType:'joint',
+      elements:[el('Wallet/account linkage data','fin'), el('Contact data only (activation notice)','pii')],
+      location:'Payment Gateway (PCI-DSS L1); SendGrid — US',
+      security:['PCI-DSS L1 gateway','DPA with SendGrid']},
+    retention:{handler:'Records Management / DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Wallet info: account life + 7 yrs','fin'), el('Transaction records: 8 yrs','fin')],
+      location:'Wallet Database — AWS Mumbai',
+      security:['Automated retention-expiry flags'], legal:'PMLA S.12'},
+    deletion:{handler:'DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Closure on request, subject to pending settlements','fin'), el('Partial erasure — non-regulated fields only','non')],
+      location:'Wallet Database — AWS Mumbai',
+      security:['Settlement-completion check before closure']},
+  }},
+{ code:'DDQ-FT-005', name:'Money Transfer', dept:'Operations Team', risk:'high', dpia:'yes', xborder:'no', subject:'Customer (Sender) + Beneficiary (third-party data subject)',
+  purpose:'Facilitates P2P/A2A transfers via UPI, NEFT, IMPS, or wallet — with real-time fraud screening.',
+  dfd:{
+    spine:[
+      {id:'customer', label:'Customer', sub:'Sender / Data Subject (External Entity)', type:'entity', zone:'public'},
+      {id:'app', label:'Mobile / Web App', sub:'Transfer initiation', type:'process', zone:'dmz'},
+      {id:'gateway', label:'API Gateway', sub:'Perimeter — auth, rate-limit', type:'process', zone:'dmz'},
+      {id:'service', label:'Transfer Service', sub:'Operations Team', type:'process', zone:'app', stage:'processing'},
+      {id:'fraud', label:'Fraud/Risk Scoring Engine', sub:'Real-time ML — automated decision', type:'process', zone:'app', stage:'processing'},
+      {id:'store', label:'Transaction Database', sub:'AWS Mumbai · immutable ledger', type:'datastore', zone:'data', stage:'storage'},
+      {id:'archive', label:'Retention Archive', sub:'8 yrs (PMLA S.12)', type:'process', zone:'archive', stage:'retention'},
+      {id:'erasure', label:'Erasure Queue', sub:'Not available during 8-yr hold', type:'process', zone:'archive', stage:'deletion'},
+    ],
+    edgeLabels:[
+      {label:'Beneficiary name, account/UPI ID, amount entered', cat:'pii'},
+      {label:'Transfer request forwarded over TLS 1.3', cat:'non'},
+      {label:'Request routed to transfer service', cat:'non'},
+      {label:'Transaction context sent for scoring', cat:'non'},
+      {label:'Immutable transaction record written', cat:'fin'},
+      {label:'Record tagged for 8-yr statutory hold', cat:'non'},
+      {label:'Erasure blocked — PMLA retention active', cat:'non'},
+    ],
+    branches:[
+      {from:'service', dir:'in', stage:'collection', label:'Beneficiary name, account/UPI ID', cat:'pii', node:{label:'Beneficiary', sub:'Third-party Data Subject (External Entity)', type:'entity', zone:'thirdparty'}},
+      {from:'store', dir:'out', stage:'sharing', label:'Settlement instruction', cat:'fin', node:{label:'NPCI / Banking Partner', sub:'Joint Controller — settlement rail', type:'external', zone:'thirdparty'}},
+      {from:'store', dir:'out', stage:'sharing', label:'STR/CTR filing on threshold trigger', cat:'fin', node:{label:'FIU-IND', sub:'Regulator', type:'external', zone:'thirdparty'}},
+    ],
+  },
+  stages:{
+    collection:{handler:'Operations Team', role:'Controller', roleType:'controller',
+      elements:[el('Beneficiary name, account/UPI ID (third-party data subject)','pii'), el('Amount','fin'), el('Optional geolocation (separate consent)','pii')],
+      location:'Captured at transfer initiation',
+      security:['TLS 1.3','Separate consent gate for geolocation']},
+    processing:{handler:'Risk & Fraud Team', role:'Controller', roleType:'controller',
+      elements:[el('ML fraud/risk score','non'), el('Auto-block decision (automated, financial effect)','non')],
+      location:'Real-time scoring engine — AWS Mumbai',
+      security:['DPIA completed','Human-review escalation path (DPDP S.7f)']},
+    storage:{handler:'IT Infrastructure / Security Team', role:'Processor: AWS (India)', roleType:'processor',
+      elements:[el('Immutable transaction record','fin')],
+      location:'Transaction Database — AWS Mumbai',
+      security:['AES-256 at rest','Write-once transaction ledger']},
+    sharing:{handler:'Compliance Team (authorises)', role:'Joint Controller: Banking Partner, NPCI / Regulator: FIU-IND', roleType:'regulator',
+      elements:[el('Transaction + beneficiary detail','pii'), el('STR/CTR filing where triggered','fin')],
+      location:'NPCI settlement network; FIU-IND reporting portal',
+      security:['Mandatory filing controls','Access limited to Compliance Team']},
+    retention:{handler:'Records Management / DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Transaction records: 8 yrs','fin'), el('Fraud logs: 3 yrs','non')],
+      location:'Transaction Database — AWS Mumbai',
+      security:['WORM-style immutable log'], legal:'PMLA S.12'},
+    deletion:{handler:'DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('No erasure during 8-yr statutory retention','fin')],
+      location:'Transaction Database — AWS Mumbai',
+      security:['Right to dispute an automated block (DPDP S.7f)']},
+  }},
+{ code:'DDQ-FT-006', name:'Merchant Payments', dept:'Merchant Ops Team', risk:'high', dpia:'yes', xborder:'yes', subject:'Customer (Payer) + Merchant (independent business entity)',
+  purpose:'Enables customer-to-merchant payments (QR, links, POS) and merchant fund settlement.',
+  dfd:{
+    spine:[
+      {id:'customer', label:'Customer', sub:'Payer / Data Subject (External Entity)', type:'entity', zone:'public'},
+      {id:'app', label:'Mobile / Web App', sub:'QR / payment link', type:'process', zone:'dmz'},
+      {id:'gateway', label:'API Gateway', sub:'Perimeter — auth, rate-limit', type:'process', zone:'dmz'},
+      {id:'service', label:'Payment Routing Service', sub:'Merchant Ops Team', type:'process', zone:'app', stage:'processing'},
+      {id:'fraud', label:'Fraud/Risk Scoring Engine', sub:'Real-time screening', type:'process', zone:'app', stage:'processing'},
+      {id:'store', label:'Transaction/Settlement DB', sub:'AWS Mumbai + Singapore DR', type:'datastore', zone:'data', stage:'storage'},
+      {id:'archive', label:'Retention Archive', sub:'8 yrs txns / 7 yrs merchant recs', type:'process', zone:'archive', stage:'retention'},
+      {id:'erasure', label:'Erasure Queue', sub:'Blocked during 8-yr hold', type:'process', zone:'archive', stage:'deletion'},
+    ],
+    edgeLabels:[
+      {label:'Payment request via QR scan / link', cat:'fin'},
+      {label:'Request forwarded over TLS 1.3', cat:'non'},
+      {label:'Request routed to payment service', cat:'non'},
+      {label:'Payment context sent for screening', cat:'non'},
+      {label:'Transaction/settlement record written', cat:'fin'},
+      {label:'Record tagged for 8-yr statutory hold', cat:'non'},
+      {label:'Erasure blocked — PMLA retention active', cat:'non'},
+    ],
+    branches:[
+      {from:'service', dir:'in', stage:'collection', label:'Settlement & onboarding details', cat:'pii', node:{label:'Merchant', sub:'Joint Controller — own records', type:'entity', zone:'thirdparty'}},
+      {from:'store', dir:'out', stage:'sharing', label:'Settlement instruction', cat:'fin', node:{label:'NPCI / Banking Partner', sub:'Joint Controller — settlement rail', type:'external', zone:'thirdparty'}},
+      {from:'store', dir:'out', stage:'storage', label:'Encrypted cross-region replication', cat:'non', node:{label:'AWS Singapore (DR)', sub:'Sub-processor — cross-border', type:'external', zone:'thirdparty'}},
+    ],
+  },
+  stages:{
+    collection:{handler:'Merchant Ops Team', role:'Controller', roleType:'controller',
+      elements:[el('Payment request via QR / link','fin'), el('Merchant settlement details (at onboarding)','pii')],
+      location:'Captured at point of payment',
+      security:['TLS 1.3','QR payload integrity check']},
+    processing:{handler:'Merchant Ops / Risk & Fraud Team', role:'Controller', roleType:'controller',
+      elements:[el('Payment execution result','fin'), el('Real-time fraud screening score','non')],
+      location:'Settlement engine (T+1) — AWS Mumbai',
+      security:['DPIA completed','Automated + manual fraud review']},
+    storage:{handler:'IT Infrastructure / Security Team', role:'Processor: AWS (India + Singapore)', roleType:'processor',
+      elements:[el('Transaction & settlement record','fin')],
+      location:'Transaction/Settlement DB — AWS Mumbai (primary) + AWS Singapore (DR replica)',
+      security:['AES-256 at rest','Encrypted cross-region replication']},
+    sharing:{handler:'Compliance Team (authorises)', role:'Joint Controller: NPCI, Banking Partner, Merchant', roleType:'joint',
+      elements:[el('Settlement data to merchant\'s own records','fin')],
+      location:'NPCI network; AWS Singapore (cross-border DR transfer)',
+      security:['DPA + SCCs for Singapore DR transfer']},
+    retention:{handler:'Records Management / DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Transaction/settlement records: 8 yrs','fin'), el('Merchant account records: 7 yrs post-offboarding','pii')],
+      location:'Transaction DB — AWS Mumbai + Singapore',
+      security:['Automated retention-expiry flags']},
+    deletion:{handler:'DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Erasure subject to 8-yr PMLA retention','fin')],
+      location:'Transaction DB — AWS Mumbai + Singapore',
+      security:['Dispute process for automated payment blocks']},
+  }},
+{ code:'DDQ-FT-007', name:'Fraud Detection & Monitoring', dept:'Risk & Fraud Team', risk:'high', dpia:'yes', xborder:'yes', subject:'Customer (Account Holder, profiled)',
+  purpose:'Identifies suspicious activity and ensures AML/CFT compliance via real-time screening and behavioural analytics.',
+  dfd:{
+    spine:[
+      {id:'customer', label:'Customer', sub:'Data Subject (passive / profiled)', type:'entity', zone:'public'},
+      {id:'app', label:'Mobile / Web App SDK', sub:'Behavioural signal capture', type:'process', zone:'dmz'},
+      {id:'gateway', label:'API Gateway', sub:'Perimeter — telemetry ingest', type:'process', zone:'dmz'},
+      {id:'service', label:'Risk & Fraud Engine', sub:'Risk & Fraud Team — ML scoring', type:'process', zone:'app', stage:'processing'},
+      {id:'store', label:'Risk Scoring System', sub:'AWS Mumbai + Singapore (aggregates)', type:'datastore', zone:'data', stage:'storage'},
+      {id:'archive', label:'Retention Archive', sub:'8 yrs investigation / 3 yrs scores', type:'process', zone:'archive', stage:'retention'},
+      {id:'erasure', label:'Erasure Queue', sub:'Exempt during active investigation', type:'process', zone:'archive', stage:'deletion'},
+    ],
+    edgeLabels:[
+      {label:'Login pattern, velocity, device fingerprint', cat:'non'},
+      {label:'Telemetry forwarded over TLS 1.3', cat:'non'},
+      {label:'Signal routed for scoring', cat:'non'},
+      {label:'Risk score + case notes written', cat:'non'},
+      {label:'Tagged for investigation retention', cat:'non'},
+      {label:'Human-review right on automated restriction', cat:'non'},
+    ],
+    branches:[
+      {from:'store', dir:'out', stage:'sharing', label:'STR/CTR filing', cat:'pii', node:{label:'FIU-IND', sub:'Regulator', type:'external', zone:'thirdparty'}},
+      {from:'store', dir:'out', stage:'sharing', label:'Disclosure only on lawful order', cat:'pii', node:{label:'Law Enforcement', sub:'Regulator', type:'external', zone:'thirdparty'}},
+      {from:'store', dir:'out', stage:'sharing', label:'Fraud-alert network signal', cat:'non', node:{label:'NPCI', sub:'Fraud-alert network', type:'external', zone:'thirdparty'}},
+    ],
+  },
+  stages:{
+    collection:{handler:'Risk & Fraud Team', role:'Controller', roleType:'controller',
+      elements:[el('Login patterns, velocity, device fingerprint (passive/derived)','non')],
+      location:'Captured via behavioural analytics SDK',
+      security:['Pseudonymisation where feasible']},
+    processing:{handler:'Risk & Fraud Team', role:'Controller', roleType:'controller',
+      elements:[el('ML fraud/risk profiling score','non'), el('Case management notes','pii')],
+      location:'Risk Scoring System — AWS Mumbai',
+      security:['DPIA completed','Human-review right on significant automated effect']},
+    storage:{handler:'IT Infrastructure / Security Team', role:'Processor: AWS (India + Singapore)', roleType:'processor',
+      elements:[el('Risk scores, model parameters, aggregates only in DR','non')],
+      location:'Risk Scoring System — AWS Mumbai (primary) + Singapore DR (aggregates only)',
+      security:['AES-256 at rest','No raw PII replicated to Singapore']},
+    sharing:{handler:'Compliance Team (authorises)', role:'Regulator: FIU-IND, Law Enforcement / NPCI network', roleType:'regulator',
+      elements:[el('STR/CTR filing data','pii'), el('Fraud alert to NPCI network','non')],
+      location:'FIU-IND reporting portal; NPCI fraud-alert network',
+      security:['Disclosure to Law Enforcement only on lawful order']},
+    retention:{handler:'Records Management / DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Investigation records: 8 yrs','pii'), el('Risk scores: account life + 3 yrs (model audit)','non')],
+      location:'Risk Scoring System — AWS Mumbai + Singapore',
+      security:['Access-review before archival']},
+    deletion:{handler:'DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Exempt from erasure during retention / active investigation','pii')],
+      location:'Risk Scoring System — AWS Mumbai',
+      security:['Right to request human review of an automated restriction']},
+  }},
+{ code:'DDQ-FT-008', name:'Customer Support & Complaints', dept:'Customer Support Team', risk:'medhigh', dpia:'recommended', xborder:'yes', subject:'Customer / Complainant (may include Merchant)',
+  purpose:'Receives and resolves complaints/disputes per RBI Ombudsman Scheme and Consumer Protection Act, 2019.',
+  dfd:{
+    spine:[
+      {id:'customer', label:'Customer', sub:'Complainant / Data Subject', type:'entity', zone:'public'},
+      {id:'app', label:'Support Channel / IVR', sub:'Call, chat, in-app ticket', type:'process', zone:'dmz'},
+      {id:'gateway', label:'API Gateway', sub:'Perimeter — auth, rate-limit', type:'process', zone:'dmz'},
+      {id:'service', label:'Support Ticketing Service', sub:'Customer Support Team', type:'process', zone:'app', stage:'processing'},
+      {id:'store', label:'CRM', sub:'AWS Mumbai + Singapore DR', type:'datastore', zone:'data', stage:'storage'},
+      {id:'archive', label:'Retention Archive', sub:'8 yrs complaints / 1–2 yrs recordings', type:'process', zone:'archive', stage:'retention'},
+      {id:'erasure', label:'Erasure Queue', sub:'Findings withheld if prejudicial', type:'process', zone:'archive', stage:'deletion'},
+    ],
+    edgeLabels:[
+      {label:'Complaint text, attachments, call recording (consent)', cat:'spii'},
+      {label:'Ticket payload forwarded over TLS 1.3', cat:'non'},
+      {label:'Request routed to support queue', cat:'non'},
+      {label:'Ticket record + case notes written', cat:'pii'},
+      {label:'Tagged per record-type retention schedule', cat:'non'},
+      {label:'Access & correction available on request', cat:'non'},
+    ],
+    branches:[
+      {from:'store', dir:'out', stage:'sharing', label:'Case details shared with consent', cat:'pii', node:{label:'Banking Partner / Merchant', sub:'Joint Controller', type:'external', zone:'thirdparty'}},
+      {from:'store', dir:'out', stage:'sharing', label:'Escalated complaint', cat:'pii', node:{label:'RBI Ombudsman', sub:'Regulator', type:'external', zone:'thirdparty'}},
+    ],
+  },
+  stages:{
+    collection:{handler:'Customer Support Team', role:'Controller', roleType:'controller',
+      elements:[el('Complaint text, attachments','pii'), el('Call recordings (separate verbal consent)','spii')],
+      location:'Captured via support channel / IVR',
+      security:['Explicit consent recorded for call recording']},
+    processing:{handler:'Customer Support Team', role:'Controller', roleType:'controller',
+      elements:[el('Ticket routing & investigation notes','pii'), el('Fraud referral where suspected','non')],
+      location:'CRM ticketing workflow — AWS Mumbai',
+      security:['Access limited to assigned agent']},
+    storage:{handler:'IT Infrastructure / Security Team', role:'Processor: AWS (India + Singapore)', roleType:'processor',
+      elements:[el('Ticket record, attachments, recordings','spii')],
+      location:'CRM — AWS Mumbai (primary) + Singapore DR',
+      security:['AES-256 at rest','Encrypted cross-region replication']},
+    sharing:{handler:'Compliance Team (authorises)', role:'Joint Controller: Banking Partner, Merchant / Regulator: RBI Ombudsman', roleType:'joint',
+      elements:[el('Case details shared with consent','pii')],
+      location:'Banking Partner / Merchant systems; RBI Ombudsman portal',
+      security:['Disclosure minimised to case-relevant data']},
+    retention:{handler:'Records Management / DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Complaint records: 8 yrs','pii'), el('Call recordings: 1–2 yrs','spii')],
+      location:'CRM — AWS Mumbai + Singapore',
+      security:['Retention-expiry flag per record type']},
+    deletion:{handler:'DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Access & correction on request','pii'), el('Investigation findings withheld if disclosure is prejudicial','non')],
+      location:'CRM — AWS Mumbai',
+      security:['Redaction review before disclosure']},
+  }},
+{ code:'DDQ-FT-009', name:'Bill Payments', dept:'Bill Payments Ops', risk:'medium', dpia:'no', xborder:'yes', subject:'Customer (Payer)',
+  purpose:'Enables utility, insurance and recharge bill payments via BBPS integration.',
+  dfd:{
+    spine:[
+      {id:'customer', label:'Customer', sub:'Payer / Data Subject (External Entity)', type:'entity', zone:'public'},
+      {id:'app', label:'Mobile / Web App', sub:'Bill-pay entry', type:'process', zone:'dmz'},
+      {id:'gateway', label:'API Gateway', sub:'Perimeter — auth, rate-limit', type:'process', zone:'dmz'},
+      {id:'service', label:'Bill Payment Service', sub:'Bill Payments Ops', type:'process', zone:'app', stage:'processing'},
+      {id:'store', label:'Transaction Database', sub:'AWS Mumbai + Singapore DR', type:'datastore', zone:'data', stage:'storage'},
+      {id:'archive', label:'Retention Archive', sub:'8 yrs (PMLA S.12)', type:'process', zone:'archive', stage:'retention'},
+      {id:'erasure', label:'Erasure Queue', sub:'Blocked during 8-yr hold', type:'process', zone:'archive', stage:'deletion'},
+    ],
+    edgeLabels:[
+      {label:'Biller/consumer account number, amount', cat:'pii'},
+      {label:'Payment request forwarded over TLS 1.3', cat:'non'},
+      {label:'Request routed for BBPS validation', cat:'non'},
+      {label:'Payment/settlement record written', cat:'fin'},
+      {label:'Record tagged for 8-yr statutory hold', cat:'non'},
+      {label:'Geolocation data erasable independently', cat:'non'},
+    ],
+    branches:[
+      {from:'service', dir:'out', stage:'sharing', label:'Biller/consumer account number', cat:'pii', node:{label:'BBPS Aggregator', sub:'Joint Controller — biller network', type:'external', zone:'thirdparty'}},
+      {from:'store', dir:'out', stage:'sharing', label:'Confirmation contact data', cat:'pii', node:{label:'SendGrid / Twilio', sub:'Processor · US/Canada', type:'external', zone:'thirdparty'}},
+    ],
+  },
+  stages:{
+    collection:{handler:'Bill Payments Ops', role:'Controller', roleType:'controller',
+      elements:[el('Biller/consumer account number, amount','pii')],
+      location:'Captured at bill-pay entry',
+      security:['TLS 1.3','Field validation against biller schema']},
+    processing:{handler:'Bill Payments Ops / Risk Team', role:'Controller', roleType:'controller',
+      elements:[el('Bill fetch & validation via BBPS','fin'), el('Anomaly / velocity check','non')],
+      location:'BBPS integration layer — AWS Mumbai',
+      security:['Real-time anomaly screening']},
+    storage:{handler:'IT Infrastructure / Security Team', role:'Processor: AWS (India + Singapore)', roleType:'processor',
+      elements:[el('Payment/settlement record','fin')],
+      location:'Transaction DB — AWS Mumbai (primary) + Singapore DR',
+      security:['AES-256 at rest']},
+    sharing:{handler:'Bill Payments Ops (authorises)', role:'Joint Controller: BBPS Aggregator / Processor: SendGrid, Twilio', roleType:'joint',
+      elements:[el('Biller/consumer number to BBPS','pii'), el('Confirmation contact data','pii')],
+      location:'BBPS network; SendGrid & Twilio — US/Canada',
+      security:['DPA + SCCs with SendGrid, Twilio']},
+    retention:{handler:'Records Management / DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Payment/settlement records: 8 yrs','fin')],
+      location:'Transaction DB — AWS Mumbai + Singapore',
+      security:['Automated retention-expiry flags'], legal:'PMLA S.12'},
+    deletion:{handler:'DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Not erasable during 8-yr retention','fin'), el('Opt-in geolocation data erasable independently','pii')],
+      location:'Transaction DB — AWS Mumbai',
+      security:['Separate erasure path for geolocation only']},
+  }},
+{ code:'DDQ-FT-010', name:'Marketing Communications', dept:'Marketing Team', risk:'medium', dpia:'no', xborder:'yes', subject:'Customer (Prospect / Existing)',
+  purpose:'Sends promotional communications on the sole basis of explicit, freely-given, withdrawable consent.',
+  dfd:{
+    spine:[
+      {id:'customer', label:'Customer', sub:'Prospect / Existing Customer', type:'entity', zone:'public'},
+      {id:'app', label:'Preference Centre', sub:'Consent capture UI', type:'process', zone:'dmz'},
+      {id:'gateway', label:'API Gateway', sub:'Perimeter — auth, rate-limit', type:'process', zone:'dmz'},
+      {id:'service', label:'Campaign Segmentation Service', sub:'Marketing Team', type:'process', zone:'app', stage:'processing'},
+      {id:'store', label:'Consent Management Platform', sub:'AWS Mumbai + Singapore DR', type:'datastore', zone:'data', stage:'storage'},
+      {id:'archive', label:'Retention Archive', sub:'Consent 5–7 yrs / opt-out ≥5 yrs', type:'process', zone:'archive', stage:'retention'},
+      {id:'erasure', label:'Erasure Queue', sub:'Opt-out record retained as evidence', type:'process', zone:'archive', stage:'deletion'},
+    ],
+    edgeLabels:[
+      {label:'Consent opt-in, communication preferences', cat:'pii'},
+      {label:'Preference payload forwarded over TLS 1.3', cat:'non'},
+      {label:'Request routed to segmentation engine', cat:'non'},
+      {label:'Consent record + pseudonymised profile written', cat:'pii'},
+      {label:'Tagged per consent/opt-out schedule', cat:'non'},
+      {label:'Full erasure except opt-out evidence', cat:'non'},
+    ],
+    branches:[
+      {from:'service', dir:'out', stage:'sharing', label:'Contact data for delivery', cat:'pii', node:{label:'SendGrid / Twilio / Zendesk', sub:'Processor · US/Canada', type:'external', zone:'thirdparty'}},
+    ],
+  },
+  stages:{
+    collection:{handler:'Marketing Team', role:'Controller', roleType:'controller',
+      elements:[el('Consent checkbox (opt-in, not pre-ticked)','pii'), el('Communication & language preferences','pii')],
+      location:'Captured at registration / preference centre',
+      security:['Opt-in only — no pre-ticked boxes']},
+    processing:{handler:'Marketing Team', role:'Controller', roleType:'controller',
+      elements:[el('Campaign segmentation on pseudonymised behavioural data','non')],
+      location:'Segmentation engine — AWS Mumbai',
+      security:['DPIA mandatory before any ML-based targeting','Pseudonymisation applied']},
+    storage:{handler:'IT Infrastructure / Security Team', role:'Processor: AWS (India + Singapore)', roleType:'processor',
+      elements:[el('Consent record & preference profile','pii')],
+      location:'Consent Management Platform — AWS Mumbai + Singapore DR',
+      security:['AES-256 at rest']},
+    sharing:{handler:'Marketing Team (authorises)', role:'Processor: SendGrid, Twilio, Zendesk', roleType:'processor',
+      elements:[el('Contact data for delivery','pii')],
+      location:'SendGrid, Twilio — US/Canada; Zendesk CRM — US (DPA review in progress)',
+      security:['DPA + SCCs (Zendesk DPA pending finalisation — tracked risk item)']},
+    retention:{handler:'Records Management / DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Consent records: 5–7 yrs','pii'), el('Opt-out records: 5 yrs minimum — kept even after erasure','pii')],
+      location:'Consent Management Platform — AWS Mumbai',
+      security:['Opt-out record isolated from marketable profile']},
+    deletion:{handler:'DPO Office', role:'Controller', roleType:'controller',
+      elements:[el('Fully erasable on request','pii'), el('Exception: opt-out record kept as legal evidence','non')],
+      location:'Consent Management Platform — AWS Mumbai',
+      security:['Erasure workflow auto-triggered on consent withdrawal']},
+  }},
+];
+
+/* ---------------- STATE ---------------- */
+let activeStage = null;
+let activeProcess = null;
+
+/* ---------------- Legend toggle ---------------- */
+document.getElementById('legendToggle').addEventListener('click', ()=>{
+  const btn = document.getElementById('legendToggle');
+  const panel = document.getElementById('legendPanel');
+  btn.classList.toggle('open');
+  panel.classList.toggle('open');
+});
+
+/* ---------------- RENDER: Ledger ---------------- */
+function renderLedger(){
+  const total = PROCESSES.length;
+  const dpiaYes = PROCESSES.filter(p=>p.dpia==='yes').length;
+  const xborder = PROCESSES.filter(p=>p.xborder==='yes').length;
+  const high = PROCESSES.filter(p=>p.risk==='high').length;
+  const items = [
+    [total, 'Processes mapped'],
+    [dpiaYes, 'Require a mandatory DPIA'],
+    [xborder, 'Involve cross-border transfer'],
+    [high, 'Rated high risk'],
+  ];
+  document.getElementById('ledger').innerHTML = items.map(([n,l])=>`
+    <div class="ledger-item">
+      <div class="ledger-num">${n}<span style="font-size:15px;color:var(--text-dimmer);">/${total}</span></div>
+      <div class="ledger-label">${l}</div>
+    </div>`).join('');
+}
+
+/* ---------------- RENDER: Pipeline ---------------- */
+function renderPipeline(){
+  const el = document.getElementById('pipeline');
+  el.innerHTML = STAGES.map(s=>{
+    let cls = 'stage';
+    if(activeStage===s.id) cls += ' active';
+    return `<div class="${cls}" data-stage="${s.id}">
+      <div class="stage-icon">${ICONS[s.id]}</div>
+      <div class="stage-name">${s.name}</div>
+      <div class="stage-desc">${s.desc}</div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.stage').forEach(node=>{
+    node.addEventListener('click', ()=>{
+      const id = node.getAttribute('data-stage');
+      activeStage = (activeStage===id) ? null : id;
+      renderPipeline();
+      renderOverview();
+    });
+  });
+}
+
+function renderOverview(){
+  const host = document.getElementById('overviewPanel');
+  if(!activeStage){ host.innerHTML=''; return; }
+  const s = STAGES.find(x=>x.id===activeStage);
+  host.innerHTML = `
+    <div class="overview-panel">
+      <div class="overview-title">${s.name} <span class="tag">stage overview</span></div>
+      <div class="overview-body">${s.body}</div>
+      <div class="overview-meta">${s.meta.map(m=>`<div class="meta-chip">${m}</div>`).join('')}</div>
+    </div>`;
+}
+
+/* ---------------- RENDER: Chips ---------------- */
+const RISK_LABEL = {medium:'Medium', high:'High', medhigh:'Med–High'};
+const RISK_DOT = {medium:'var(--amber)', high:'var(--red)', medhigh:'var(--orange)'};
+
+function renderChips(){
+  const elc = document.getElementById('chips');
+  elc.innerHTML = PROCESSES.map(p=>{
+    const sel = activeProcess===p.code ? 'selected' : '';
+    return `<div class="chip ${sel}" data-code="${p.code}">
+      <div class="chip-main">
+        <div class="chip-code">${p.code}</div>
+        <div class="chip-name">${p.name}</div>
+        <div class="chip-dept">${p.dept}</div>
+      </div>
+      <div class="chip-badges">
+        <div class="risk-row"><span class="risk-dot" style="background:${RISK_DOT[p.risk]}"></span>${RISK_LABEL[p.risk]}</div>
+        ${p.xborder==='yes' ? '<div class="risk-row">cross-border</div>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+  elc.querySelectorAll('.chip').forEach(node=>{
+    node.addEventListener('click', ()=>{
+      const code = node.getAttribute('data-code');
+      activeProcess = (activeProcess===code) ? null : code;
+      renderChips();
+      renderDrawer();
+      updateResetVisibility();
+    });
+  });
+}
+
+function updateResetVisibility(){
+  document.getElementById('resetBtn').classList.toggle('show', !!activeProcess);
+}
+
+/* ---------------- RENDER: Data Flow Diagram (trust-boundary view) ---------------- */
+const ROLE_BADGE_CLASS = {controller:'role-controller', processor:'role-processor', joint:'role-joint', regulator:'role-regulator'};
+
+function escXml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function catBg(cat){ return {pii:'var(--teal-dim)', spii:'var(--red-dim)', fin:'var(--amber-dim)', non:'rgba(143,160,184,0.15)'}[cat] || 'rgba(143,160,184,0.15)'; }
+function catFg(cat){ return {pii:'var(--teal)', spii:'var(--red)', fin:'var(--amber)', non:'var(--text-dim)'}[cat] || 'var(--text-dim)'; }
+
+const ZONE_FILL = {public:'rgba(198,86,79,0.12)', dmz:'rgba(214,165,66,0.12)', app:'rgba(79,184,176,0.12)', data:'rgba(140,127,203,0.14)', archive:'rgba(94,164,122,0.10)', thirdparty:'rgba(140,127,203,0.10)'};
+const ZONE_STROKE = {public:'var(--red)', dmz:'var(--amber)', app:'var(--teal)', data:'var(--violet)', archive:'var(--green)', thirdparty:'var(--text-dimmer)'};
+const ZONE_LABEL = {public:'PUBLIC INTERNET — UNTRUSTED', dmz:'PERIMETER / DMZ', app:'APPLICATION ZONE — FinSec Internal (AWS VPC, Mumbai)', data:'DATA ZONE — FinSec Internal (AWS VPC, Mumbai)', archive:'RETENTION &amp; ERASURE ZONE'};
+
+function nodeSVG(n,x,y,w,h){
+  const zone = n.zone || 'thirdparty';
+  const fill = ZONE_FILL[zone] || 'var(--panel-alt)';
+  const stroke = ZONE_STROKE[zone] || 'var(--border-strong)';
+  let shape;
+  if(n.type==='datastore'){
+    shape = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="none"/>
+      <line x1="${x}" y1="${y}" x2="${x+w}" y2="${y}" stroke="${stroke}" stroke-width="1.6"/>
+      <line x1="${x}" y1="${y+h}" x2="${x+w}" y2="${y+h}" stroke="${stroke}" stroke-width="1.6"/>`;
+  } else if(n.type==='entity'){
+    shape = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/>
+      <rect x="${x+5}" y="${y+5}" width="${w-10}" height="${h-10}" fill="none" stroke="${stroke}" stroke-width="0.8"/>`;
+  } else if(n.type==='external'){
+    shape = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="9" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-dasharray="6 4"/>`;
+  } else {
+    shape = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="9" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/>`;
+  }
+  const stageAttr = n.stage ? ` data-stage="${n.stage}"` : '';
+  const cls = n.stage ? 'dfd-node dfd-node-clickable' : 'dfd-node';
+  return `<g class="${cls}"${stageAttr}>
+    ${shape}
+    <foreignObject x="${x+4}" y="${y+2}" width="${w-8}" height="${h-4}">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;font-family:'IBM Plex Sans',sans-serif;pointer-events:none;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;color:var(--text);line-height:1.2;">${escXml(n.label)}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--text-dim);margin-top:2px;line-height:1.2;">${escXml(n.sub)}</div>
+      </div>
+    </foreignObject>
+  </g>`;
+}
+
+function edgeLabelFO(x,y,w,h,item){
+  return `<foreignObject x="${x}" y="${y}" width="${w}" height="${h}">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:'IBM Plex Sans',sans-serif;font-size:10px;color:var(--text-dim);line-height:1.3;display:flex;gap:5px;align-items:flex-start;">
+      <span style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:7.5px;font-weight:700;padding:2px 4px;border-radius:3px;background:${catBg(item.cat)};color:${catFg(item.cat)};margin-top:1px;white-space:nowrap;">${CAT_LABEL[item.cat]}</span>
+      <span>${escXml(item.label)}</span>
+    </div>
+  </foreignObject>`;
+}
+
+function renderDFD(p){
+  const d = p.dfd;
+  const ROW_H=112, NODE_W=228, NODE_H=56, SPINE_X=170, BRANCH_X=620, BRANCH_W=228, BRANCH_H=52, topPad=36;
+  const spineY = d.spine.map((_,i)=> topPad + i*ROW_H);
+  const spineRight = SPINE_X+NODE_W;
+  const branchLeft = BRANCH_X;
+  const midX = (spineRight+branchLeft)/2;
+
+  const groups = {};
+  (d.branches||[]).forEach(b=>{ (groups[b.from]=groups[b.from]||[]).push(b); });
+
+  let branchSVGs=[], maxBranchBottom=0;
+  Object.keys(groups).forEach(originId=>{
+    const idx = d.spine.findIndex(n=>n.id===originId);
+    if(idx<0) return;
+    const originCenterY = spineY[idx]+NODE_H/2;
+    const items = groups[originId];
+    const offsets = items.length===1? [0] : items.length===2? [-48,48] : items.map((_,i)=> (i-(items.length-1)/2)*70);
+    items.forEach((b,i)=>{
+      const branchCenterY = Math.max(BRANCH_H/2+4, originCenterY+offsets[i]);
+      const branchTop = branchCenterY-BRANCH_H/2;
+      maxBranchBottom = Math.max(maxBranchBottom, branchTop+BRANCH_H);
+      let path;
+      if(b.dir==='in'){
+        path = `M ${branchLeft} ${branchCenterY} L ${midX} ${branchCenterY} L ${midX} ${originCenterY} L ${spineRight+6} ${originCenterY}`;
+      } else {
+        path = `M ${spineRight} ${originCenterY} L ${midX} ${originCenterY} L ${midX} ${branchCenterY} L ${branchLeft-6} ${branchCenterY}`;
+      }
+      branchSVGs.push(`<path d="${path}" fill="none" stroke="var(--text-dimmer)" stroke-width="1.4" marker-end="url(#arrow)" opacity="0.85"/>`);
+      branchSVGs.push(edgeLabelFO(midX+10, branchCenterY-22, Math.max(branchLeft-midX-20,60), 40, {label:b.label, cat:b.cat}));
+      branchSVGs.push(nodeSVG(Object.assign({}, b.node, {stage:b.stage}), branchLeft, branchTop, BRANCH_W, BRANCH_H));
+    });
+  });
+
+  let bands=[];
+  d.spine.forEach((n,i)=>{
+    if(bands.length && bands[bands.length-1].zone===n.zone){ bands[bands.length-1].end=i; }
+    else bands.push({zone:n.zone, start:i, end:i});
+  });
+  const bandSVGs = bands.map(b=>{
+    const y1=spineY[b.start]-22, y2=spineY[b.end]+NODE_H+22;
+    return `<rect x="90" y="${y1}" width="${spineRight-90+30}" height="${y2-y1}" rx="10" fill="none" stroke="${ZONE_STROKE[b.zone]}" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.55"/>
+      <foreignObject x="100" y="${y1+4}" width="440" height="16"><div xmlns="http://www.w3.org/1999/xhtml" style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.05em;color:${ZONE_STROKE[b.zone]};">${ZONE_LABEL[b.zone]}</div></foreignObject>`;
+  }).join('');
+
+  const spineSVGs = d.spine.map((n,i)=>{
+    let arrow='';
+    if(i>0){
+      const y0=spineY[i-1]+NODE_H, y1=spineY[i];
+      arrow = `<path d="M ${SPINE_X+NODE_W/2} ${y0} L ${SPINE_X+NODE_W/2} ${y1-6}" fill="none" stroke="var(--text-dimmer)" stroke-width="1.6" marker-end="url(#arrow)"/>`
+        + edgeLabelFO(SPINE_X+NODE_W+14, (y0+y1)/2-18, 190, 40, d.edgeLabels[i-1]);
+    }
+    return arrow + nodeSVG(n, SPINE_X, spineY[i], NODE_W, NODE_H);
+  }).join('');
+
+  const totalHeight = Math.max(topPad+d.spine.length*ROW_H+20, maxBranchBottom+20);
+  const totalWidth = branchLeft+BRANCH_W+40;
+
+  return `<div class="dfd-wrap">
+    <p class="dfd-title"><span>Data Flow Diagram — trust-boundary view</span><span class="dfd-hint">click any node to jump to its full detail below</span></p>
+    <div class="dfd-scroll">
+    <svg viewBox="0 0 ${totalWidth} ${totalHeight}" width="${totalWidth}" height="${totalHeight}" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--text-dimmer)"/></marker></defs>
+      ${bandSVGs}
+      ${branchSVGs.join('')}
+      ${spineSVGs}
+    </svg>
+    </div>
+    <div class="dfd-legend-mini">
+      <span><i class="mini-swatch mini-solid"></i>Process / service</span>
+      <span><i class="mini-swatch mini-store"></i>Data store</span>
+      <span><i class="mini-swatch mini-entity"></i>External entity</span>
+      <span><i class="mini-swatch mini-dashed"></i>Trust boundary crossed (external / cross-border)</span>
+    </div>
+  </div>`;
+}
+
+/* ---------------- RENDER: Drawer ---------------- */
+const DPIA_CLASS = {yes:'flag-dpia-yes', recommended:'flag-dpia-rec', no:'flag-dpia-no'};
+const DPIA_LABEL = {yes:'DPIA required', recommended:'DPIA recommended', no:'DPIA not required'};
+const RISK_CLASS = {medium:'flag-risk-medium', high:'flag-risk-high', medhigh:'flag-risk-medhigh'};
+
+function renderStageCell(stageId, d){
+  const roleClass = ROLE_BADGE_CLASS[d.roleType] || 'role-controller';
+  return `<div class="drawer-stage" data-stage="${stageId}">
+    <div class="drawer-stage-head">${ICONS[stageId]}<span>${STAGE_NAMES[stageId]}</span></div>
+    <div class="handler-row">
+      <span class="handler-badge">${d.handler}</span>
+      <span class="role-badge ${roleClass}">${d.role}</span>
+    </div>
+    <ul class="elements-list">${d.elements.map(e=>`<li><span class="cat cat-${e.cat}">${CAT_LABEL[e.cat]}</span><span>${e.text}</span></li>`).join('')}</ul>
+    <div class="loc-row">${ICONS.location}<span>${d.location}</span></div>
+    <div class="sec-row">${d.security.map(s=>`<span class="sec-chip">${s}</span>`).join('')}</div>
+    ${d.legal ? `<div class="legal-row">${d.legal}</div>` : ''}
+  </div>`;
+}
+
+function renderDrawer(){
+  const host = document.getElementById('drawerHost');
+  if(!activeProcess){ host.innerHTML=''; return; }
+  const p = PROCESSES.find(x=>x.code===activeProcess);
+  const stageBlocks = STAGE_ORDER.map(sid=>renderStageCell(sid, p.stages[sid])).join('');
+  host.innerHTML = `
+    ${renderDFD(p)}
+    <div class="drawer">
+      <div class="drawer-head">
+        <div>
+          <div class="drawer-code">${p.code}</div>
+          <div class="drawer-title">${p.name}</div>
+          <div class="drawer-purpose">${p.purpose}</div>
+        </div>
+        <div class="drawer-flags">
+          <div class="flag ${RISK_CLASS[p.risk]}">Risk: ${RISK_LABEL[p.risk]}</div>
+          <div class="flag ${DPIA_CLASS[p.dpia]}">${DPIA_LABEL[p.dpia]}</div>
+          <div class="flag ${p.xborder==='yes'?'flag-xborder-yes':'flag-xborder-no'}">${p.xborder==='yes'?'Cross-border transfer':'India-only'}</div>
+          <div class="flag flag-subject">${p.subject}</div>
+        </div>
+      </div>
+      <div class="drawer-grid">${stageBlocks}</div>
+    </div>`;
+  host.querySelectorAll('.dfd-node-clickable').forEach(node=>{
+    node.addEventListener('click', ()=>{
+      const stage = node.getAttribute('data-stage');
+      const target = host.querySelector(`.drawer-stage[data-stage="${stage}"]`);
+      if(target){
+        target.scrollIntoView({behavior:'smooth', block:'center'});
+        target.classList.add('stage-flash');
+        setTimeout(()=>target.classList.remove('stage-flash'), 1300);
+      }
+    });
+  });
+  host.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+/* ---------------- Reset ---------------- */
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  activeProcess = null;
+  renderChips();
+  renderDrawer();
+  updateResetVisibility();
+});
+
+/* ---------------- Init ---------------- */
+renderLedger();
+renderPipeline();
+renderOverview();
+renderChips();
+renderDrawer();
+updateResetVisibility();
+</script>
+</body>
+</html>
