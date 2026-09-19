@@ -5,4 +5,8 @@ Privacy and compliance portfolio containing projects related to data protection,
 Projects
 
 DPIA - Telemedicine Healthcare Platform
-
+FinSec Business Context Document
+Finsec Data Disccovery Questionnaire
+FinSec Data Inventory Register
+FinSec Data Lifecycle Map
+FinSec RoPA Register
